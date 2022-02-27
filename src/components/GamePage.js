@@ -284,8 +284,8 @@ export default function GamePage() {
                                     </div>
                                     <div className="flex items-center">
                                         <div className="mr-2 font-bold">{ team ? tokens[team] : "0" }</div>
-                                        <div style={{ width: tileSize/5, height: tileSize/5 }}>
-                                            <Token tileSize={tileSize} player={team} placeToken={placeToken}/>
+                                        <div style={{ width: tileSize/6, height: tileSize/6 }}>
+                                            <Token size={tileSize/6} player={team} placeToken={placeToken}/>
                                         </div>
                                     </div>
                                     <div className="px-4 py-2 text-sm font-bold bg-zinc-600 cursor-pointer" onClick={ () => pass(team) }>

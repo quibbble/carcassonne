@@ -37,7 +37,7 @@ export const CenterToken = (fill) => <rect fill={fill} x="32.5" y="32.5" width="
 
 const sectionToToken = {Farm: "Farmer", City: "Knight", Road: "Thief", Cloister: "Monk"};
 
-export function Token({ tileSize, player, placeToken }) {
+export function Token({ size, player, placeToken }) {
     const [{ opacity }, drag, preview] = useDrag(() => ({
         type: "token",
         item: { "type": "token", player },
@@ -52,7 +52,7 @@ export function Token({ tileSize, player, placeToken }) {
     }), [player]);
     return (
         <div ref={preview}>
-            <div ref={drag} className={ `rounded-full cursor-pointer bg-${ player }-500` } style={{ width: tileSize/5, height: tileSize/5, opacity }}/>
+            <div ref={drag} className={ `rounded-full cursor-pointer bg-${ player }-500` } style={{ width: size, height: size, opacity }}/>
         </div>
     )
 }
