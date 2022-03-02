@@ -234,7 +234,7 @@ export default function GamePage() {
                         </div>
                         <div className="sticky w-full top-[93%] h-0 flex justify-between z-[999]">
                             <div className="m-2 font-bold text-sm">
-                                { tilesRemaining + 1 } tiles left
+                                { tilesRemaining } tiles left
                             </div>
                         </div>
                         <div className="relative overflow-auto w-full flex items-center justify-center flex-col grow">
