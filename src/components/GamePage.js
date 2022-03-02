@@ -333,7 +333,12 @@ export default function GamePage() {
                     <a href={ `${ window.location.protocol }//${ window.location.host }` }>Carcassonne</a>
                 </div>
                 <div className="flex">
-                    <div className="px-3 py-1 font-bold cursor-pointer flex items-center justify-center text-xs bg-zinc-600" onClick={ () => resetGame() }>new game</div>
+                    <div className="flex">
+                        <div className="px-3 py-1 font-bold cursor-pointer flex items-center justify-center text-xs bg-zinc-600 mr-2" onClick={ () => resetGame() }>new game</div>
+                    </div>
+                    <div className="italic text-xs bg-blue-500 py-1 px-2">
+                        <a href="https://quibbble.com">more <span className="quibbble text-sm not-italic">quibbble</span> games</a>
+                    </div>
                 </div>
             </div>
         </div>
