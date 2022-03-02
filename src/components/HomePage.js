@@ -29,7 +29,7 @@ export default function HomePage() {
                     <button className="w-2/12 font-bold grow-0 bg-blue-500">Go</button>
                 </form>
                 <div className="flex w-full justify-between">
-                    <div className="italic text-xs bg-teal-600 py-1 px-2">
+                    <div className="italic text-xs bg-blue-500 py-1 px-2">
                         <a href="https://quibbble.com">more <span className="quibbble text-sm not-italic">quibbble</span> games</a>
                     </div>
                     <div className="flex items-center ml-3">
