@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { BsArrowClockwise, BsArrowUp, BsArrowLeft, BsArrowRepeat } from "react-icons/bs";
+import { BsArrowClockwise, BsArrowUp, BsArrowLeft } from "react-icons/bs";
 import { GiClick } from "react-icons/gi";
 import { CONFIG } from "../components/Config";
 import { DndProvider } from "react-dnd";
