@@ -35,7 +35,6 @@ export default function GamePage() {
             // else if (msg.Type === "Chat") setChat(c => c.concat([msg.Payload]));
             else if (msg.Type === "Connected") setConnected(msg.Payload);
             // else if (msg.Type === "Error") setError(msg.Payload);
-            console.log(msg.Payload);
         };
         ws.current.onerror = () => history.push("/");
     }, [ws, history, gid]);
@@ -96,7 +95,6 @@ export default function GamePage() {
     useEffect(() => {
         if (network && connected) setCurrentTeam(connected[network.Name])
     }, [network, connected])
-
 
     // board rendering
     const [zoom, setZoom] = useState(1);
@@ -271,12 +269,7 @@ export default function GamePage() {
 
                     <div className="my-4 w-full flex justify-between items-center" style={{ minHeight: tileSize }}>
                         {
-                            turn !== team ?
-                                <div className="flex flex-col items-center text-zinc-400 w-full">
-                                    <div className="text-xs font-light italic mb-1 text-center">Waiting for { turn } to play</div>
-                                    <BsArrowRepeat className="animate-spin-slow" />    
-                                </div> :
-                                !playTile ? 
+                            turn === team && !playTile ? 
                                 <>
                                     <div className="flex flex-col items-center text-zinc-400 max-w-[20%]">
                                         <div className="text-xs font-light italic mb-1 text-center">Drag token to place</div>
