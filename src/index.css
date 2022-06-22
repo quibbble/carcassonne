@@ -10,12 +10,6 @@ html, body {
 
     @apply bg-zinc-800;
     @apply text-zinc-100;
-
-    height: 100%;
-}
-
-#root {
-    height: 100%;
 }
 
 p, h1, h2, h3, h4, h5, h6 {
