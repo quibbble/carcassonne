@@ -51,3 +51,12 @@ export const GetBGN = async (id) => {
     return axios(config)
         .catch(error => error.response)
 };
+
+export const Health = async () => {
+    let config = {
+        method: 'GET',
+        url: `http${ CONFIG.scheme }://${ CONFIG.host }/health`,
+    };
+    return axios(config)
+        .catch(error => error.response)
+};

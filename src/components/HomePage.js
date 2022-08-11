@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Adjectives, Nouns } from "./Words";
-import { CreateGame } from "../api/API";
+import { CreateGame, Health } from "../api/API";
 import { useHistory } from "react-router-dom"
 import Footer from "./Footer";
 
@@ -9,6 +9,14 @@ export default function HomePage() {
 
     const [gid, setGameID] = useState(`${ Adjectives[Math.floor(Math.random()*Adjectives.length)] }-${ Nouns[Math.floor(Math.random()*Nouns.length)] }`);
     const [teams, setTeams] = useState(2);
+
+    useEffect(() => {
+        async function fetchHealth() {
+            let response = await Health();
+            if (!response || response.status !== 200) history.push(`/status/down`);
+        }
+        fetchHealth()
+    }, [history])
 
     async function handleGo(e) {
         e.preventDefault();
