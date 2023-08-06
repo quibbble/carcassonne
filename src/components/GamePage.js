@@ -154,7 +154,7 @@ export default function GamePage() {
     const ref = useRef(null);
     function handleResize() {
         if (!ref || !ref.current) return;
-        else setTileSize(ref.current.clientWidth/4);
+        else setTileSize(ref.current.clientHeight/6);
     }
     useEffect(() => handleResize());
     useEffect(() => {
@@ -164,7 +164,7 @@ export default function GamePage() {
 
     return (
         <div className="min-h-screen flex flex-col items-center p-2 md:p-4">
-            <div ref={ref} className="h-full w-full flex flex-col items-center max-w-xl grow">
+            <div ref={ref} className="h-full w-full flex flex-col items-center max-w-6xl grow">
                 {/* TAILWIND HACK - Tailwind preloads only used classes so anything not in initial render will not work */}
                 <div className="text-red-500 text-blue-500 text-green-500 text-yellow-500 text-orange-500 text-pink-500 text-purple-500 text-teal-500"/>
                 <div className="border-red-500 border-blue-500 border-green-500 border-yellow-500 border-orange-500 border-pink-500 border-purple-500 border-teal-500"/>
