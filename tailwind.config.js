@@ -1,13 +1,27 @@
 module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
+    "./node_modules/@quibbble/boardgame/**/*.js"
   ],
   theme: {
-    extend: {
-      animation: {
-        'spin-slow': 'spin 2s linear infinite',
-      },
-    },
+    extend: {},
   },
   plugins: [],
+  safelist: [
+    "font-['coquette']",
+    "text-orange-600",
+    "max-w-xl",
+    {
+      pattern: /bg-(red|green|blue|yellow|orange|pink|purple|teal)-500/,
+    },
+    {
+      pattern: /text-(red|green|blue|yellow|orange|pink|purple|teal)-500/,
+    },
+    {
+      pattern: /border-(red|green|blue|yellow|orange|pink|purple|teal)-500/,
+    },
+    {
+      pattern: /fill-(red|green|blue|yellow|orange|pink|purple|teal)-500/,
+    },
+  ]
 }

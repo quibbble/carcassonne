@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+    .fade-in {
+        animation: fadeIn 300ms ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+    }
+}
+
 html, body {
     margin: 0;
     padding: 0;
@@ -12,15 +23,6 @@ html, body {
     @apply text-zinc-100;
 }
 
-p, h1, h2, h3, h4, h5, h6 {
-    margin: 0;
-    padding: 0;
-}
-
-.title {
-    font-family: condor-condensed, sans-serif;
-}
-
-.quibbble {
-    font-family: lobster, cursive;
+.test {
+    border: 2px solid red
 }
