@@ -1,4 +1,4 @@
-import React, { useEffect, useState, forwardRef } from "react";
+import React, { useEffect, useState, forwardRef, useCallback } from "react";
 import { BsArrowClockwise, BsArrowUp } from "react-icons/bs";
 import { GiClick } from "react-icons/gi";
 import { DndProvider } from "react-dnd";
@@ -99,23 +99,20 @@ export const Game = forwardRef((props, ref) => {
         setXYToTile(newXYToTile);
     }, [board]);
     
-     // board resize logic
-     const [tileSize, setTileSize] = useState(0);
-     useEffect(() => {
-        function handleResize() {
-            if (!ref || !ref.current) return;
-            else setTileSize(ref.current.clientHeight/6);
-        }
-        handleResize()
-     });
-     useEffect(() => {
-        function handleResize() {
-            if (!ref || !ref.current) return;
-            else setTileSize(ref.current.clientHeight/6);
-        }
-         window.addEventListener("resize", handleResize);
-         return _ => window.removeEventListener("resize", handleResize)
-     }, [ref]);
+    // board resize logic
+    const [tileSize, setTileSize] = useState(0);
+
+    const handleResize = useCallback(() => {
+    if (!ref || !ref.current) return;
+    else setTileSize(ref.current.clientHeight/6);
+    }, [ref])
+
+    useEffect(() => handleResize());
+
+    useEffect(() => {
+        window.addEventListener("resize", handleResize);
+        return _ => window.removeEventListener("resize", handleResize)
+    }, [handleResize]);
 
     return (
         <DndProvider backend={ isMobile ? TouchBackend : HTML5Backend }>
