@@ -12,7 +12,7 @@ const config = {
   key: "Carcassonne",
   variants: {},
   minTeams: 2,
-  maxTeams: 4,
+  maxTeams: 5,
 
   // styling attributes
   font: "coquette",
