@@ -1,19 +1,19 @@
 
 import React from "react";
-import { useDrop } from "react-dnd";
+import { useDroppable } from '@dnd-kit/core';
 
-export default function TileDropSpace({ x, y, children }) {
-    const [, drop] = useDrop(() => ({
-        accept: "tile",
-        drop: () => ({ x: x, y: y }),
-        collect: (monitor) => ({
-            isOver: monitor.isOver(),
-            canDrop: monitor.canDrop(),
-        }),
-    }));
+export default function TileDropSpace({ x, y, team, children }) {
+    const {active, isOver, setNodeRef} = useDroppable({
+        id: x + "," + y,
+        data: {
+            x: x,
+            y: y
+        }
+    });
+
     return (
-        <div className="box-border border border-zinc-100 h-full" ref={ drop }>
-            <div className="bg-zinc-100 opacity-10 h-full">
+        <div ref={ setNodeRef } className="box-border border border-zinc-100 h-full">
+            <div className={ `${ isOver && active.id == "tile" ? `bg-${ team }-500` : "bg-zinc-100" } ${ isOver && active.id == "tile" ? "opacity-75" : "opacity-10" } h-full` }>
                 { children }
             </div>
         </div>

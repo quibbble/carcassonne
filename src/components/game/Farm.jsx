@@ -1,6 +1,6 @@
 import React from "react";
 
-const opacity = "0.5";
+const opacity = ".7";
 
 export const TopLeftFarm = (fill) => <rect fill={ fill } opacity={opacity} width="37.5" height="37.5"/>;
 export const TopRightFarm = (fill) => <rect fill={ fill } opacity={opacity} x="37.5" width="37.5" height="37.5"/>;

@@ -1,5 +1,5 @@
-import React from "react";
-import {useDrag} from "react-dnd";
+import React, { forwardRef } from "react";
+import { useDraggable } from '@dnd-kit/core';
 
 // tokens with padding around them
 export const TopLeftToken = (fill) => <rect fill={fill} x="4.38" y="4.38" width="10" height="10" rx="5"/>;
@@ -34,25 +34,31 @@ export const BottomLeftInsideToken = (fill) => <rect fill={fill} x="21.73" y="43
 // center token
 export const CenterToken = (fill) => <rect fill={fill} x="32.5" y="32.5" width="10" height="10" rx="5"/>;
 
+export function DraggableToken({ id, size, team, scrollX, scrollY }) {
+    const {attributes, isDragging, listeners, setNodeRef, transform} = useDraggable({
+        id: id,
+        data: {
+            type: "token"
+        }
+    });
 
-const sectionToToken = {Farm: "Farmer", City: "Knight", Road: "Thief", Cloister: "Monk"};
+    const style = {
+        opacity: isDragging ? 0.5 : undefined,
+        touchAction: "none",
+        transform: transform && (transform.x != 0 || transform.y != 0) ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined
+    }
 
-export function Token({ size, player, placeToken }) {
-    const [{ opacity }, drag, preview] = useDrag(() => ({
-        type: "token",
-        item: { "type": "token", player },
-        canDrag: () => true,
-        end: (item, monitor) => {
-            const dropResult = monitor.getDropResult();
-            if (item && dropResult) placeToken(player, dropResult.x, dropResult.y, sectionToToken[dropResult.type], dropResult.side);
-        },
-        collect: (monitor) => ({
-            opacity: monitor.isDragging() ? 0.4 : 1,
-        }),
-    }), [player]);
     return (
-        <div ref={preview}>
-            <div ref={drag} className={ `rounded-full cursor-pointer bg-${ player }-500` } style={{ width: size, height: size, opacity }}/>
-        </div>
+        <Token ref={ setNodeRef } style={ style } 
+            {...attributes} {...listeners}
+            size={ size } team={ team } />
     )
 }
+
+export const Token = forwardRef(({ size, team, ...props }, ref) => {
+    return (
+        <div ref={ ref } { ...props }>
+            <div className={ `rounded-full cursor-pointer bg-${ team }-500` } style={{ width: size, height: size }}/>
+        </div>
+    )
+})

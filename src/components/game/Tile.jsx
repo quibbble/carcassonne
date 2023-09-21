@@ -1,4 +1,4 @@
-import React from "react";
+import React, { forwardRef } from "react";
 import TokenDropSpace from "./TokenDropSpace";
 import {
     BottomLeftCurveLargeFarm, BottomLeftCurveSmallFarm,
@@ -47,7 +47,7 @@ import {
     TopRightFlushToken,
     TopRightInsideToken, TopRightToken
 } from "./Token";
-import { useDrag } from "react-dnd";
+import { useDraggable } from '@dnd-kit/core';
 
 const red = "#ef4444";
 const blue = "#3b82f6";
@@ -329,7 +329,37 @@ function createFarmColors(colors) {
     }
 }
 
-export default function Tile({x, y, sides, center, connectedCitySides, banner, colors, farmColors, centerColor, tokenDroppable, tokens, player, placeTile}) {
+export function DraggableTile({ x, y, sides, center, connectedCitySides, banner, colors, farmColors, centerColor, tokenDroppable, tokens, team, scrollX, scrollY }) {
+    const {attributes, isDragging, listeners, setNodeRef, over, transform} = useDraggable({
+        id: "tile",
+        data: {
+            type: "tile",
+            x: x,
+            y: y
+        }
+    });
+
+    const style = {
+        opacity: isDragging ? 0.5 : undefined,
+        touchAction: "none",
+        transform: transform && (transform.x != 0 || transform.y != 0) ? 
+            over ? 
+                `translate3d(${transform.x - scrollX}px, ${transform.y - scrollY}px, 0)` : 
+                `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined
+    }
+
+    return (
+        <Tile ref={ setNodeRef } style={ style } 
+            {...attributes} {...listeners}
+            x={ x } y={ y } sides={ sides } center={ center } 
+            connectedCitySides={ connectedCitySides } 
+            banner={ banner } colors={ colors } farmColors={ farmColors } 
+            centerColor={ centerColor } tokenDroppable={ tokenDroppable } 
+            tokens={ tokens } team={ team } />
+    )
+}
+
+export const Tile = forwardRef(({ x, y, sides, center, connectedCitySides, banner, colors, farmColors, centerColor, tokenDroppable, tokens, team, ...props }, ref) => {
 
     let colorDefinitions = [];
 
@@ -337,6 +367,10 @@ export default function Tile({x, y, sides, center, connectedCitySides, banner, c
     let farms = [];
     let numRoads = 0;
     for (const side of [top, right, bottom, left]) if (sides[side] === road) numRoads++;
+
+    let numCities = 0;
+    for (const side of [top, right, bottom, left]) if (sides[side] === city) numCities++;
+
     // check for curved road,
     if (numRoads === 2 && !(sides[top] === road && sides[bottom] === road) && !(sides[right] === road && sides[left] === road)) {
         if (sides[top] === road && sides[right] === road) {
@@ -346,11 +380,18 @@ export default function Tile({x, y, sides, center, connectedCitySides, banner, c
             if (minColor.definition) colorDefinitions.push(minColor.definition);
 
             if (tokenDroppable) {
-                farms.push(<TokenDropSpace x={x} y={y} type={farm} side={sides[left] === city ? topA : leftB} el={TopLeftFarm(mainColor.color)} />);
-                farms.push(<TokenDropSpace x={x} y={y} type={farm} side={topB} el={TopRightCurveLargeFarm(minColor.color)} />);
-                farms.push(<TokenDropSpace x={x} y={y} type={farm} side={topB} el={TopRightCurveSmallFarm(mainColor.color)} />);
-                farms.push(<TokenDropSpace x={x} y={y} type={farm} side={sides[right] === city ? bottomA : rightB} el={BottomRightFarm(mainColor.color)} />);
-                farms.push(<TokenDropSpace x={x} y={y} type={farm} side={sides[bottom] === city ? leftA : bottomB} el={BottomLeftFarm(mainColor.color)} />);
+                if (sides[bottom] === city && sides[left] === city) {
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[left] === city ? topA : leftB} el={TopLeftFarm(mainColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={topB} el={TopRightCurveLargeFarm(minColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={topB} el={TopRightCurveSmallFarm(mainColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[right] === city ? bottomA : rightB} el={BottomRightFarm(mainColor.color)} />);
+                } else {
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[left] === city ? topA : leftB} el={TopLeftFarm(mainColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={topB} el={TopRightCurveLargeFarm(minColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={topB} el={TopRightCurveSmallFarm(mainColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[right] === city ? bottomA : rightB} el={BottomRightFarm(mainColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[bottom] === city ? leftA : bottomB} el={BottomLeftFarm(mainColor.color)} />);
+                }
             } else {
                 farms.push(TopLeftFarm(mainColor.color));
                 farms.push(TopRightCurveLargeFarm(minColor.color));
@@ -365,11 +406,18 @@ export default function Tile({x, y, sides, center, connectedCitySides, banner, c
             if (minColor.definition) colorDefinitions.push(minColor.definition);
 
             if (tokenDroppable) {
-                farms.push(<TokenDropSpace x={x} y={y} type={farm} side={sides[left] === city ? topA : leftB} el={TopLeftFarm(mainColor.color)} />);
-                farms.push(<TokenDropSpace x={x} y={y} type={farm} side={sides[top] === city ? rightA : topB} el={TopRightFarm(mainColor.color)} />);
-                farms.push(<TokenDropSpace x={x} y={y} type={farm} side={bottomA} el={BottomRightCurveLargeFarm(minColor.color)} />);
-                farms.push(<TokenDropSpace x={x} y={y} type={farm} side={bottomA} el={BottomRightCurveSmallFarm(mainColor.color)} />);
-                farms.push(<TokenDropSpace x={x} y={y} type={farm} side={sides[bottom] === city ? leftA : bottomB} el={BottomLeftFarm(mainColor.color)} />);
+                if (sides[top] === city && sides[left] === city) {
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[top] === city ? rightA : topB} el={TopRightFarm(mainColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={bottomA} el={BottomRightCurveLargeFarm(minColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={bottomA} el={BottomRightCurveSmallFarm(mainColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[bottom] === city ? leftA : bottomB} el={BottomLeftFarm(mainColor.color)} />);
+                } else {
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[left] === city ? topA : leftB} el={TopLeftFarm(mainColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[top] === city ? rightA : topB} el={TopRightFarm(mainColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={bottomA} el={BottomRightCurveLargeFarm(minColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={bottomA} el={BottomRightCurveSmallFarm(mainColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[bottom] === city ? leftA : bottomB} el={BottomLeftFarm(mainColor.color)} />);
+                }
             } else {
                 farms.push(TopLeftFarm(mainColor.color));
                 farms.push(TopRightFarm(mainColor.color));
@@ -384,11 +432,18 @@ export default function Tile({x, y, sides, center, connectedCitySides, banner, c
             if (minColor.definition) colorDefinitions.push(minColor.definition);
 
             if (tokenDroppable) {
-                farms.push(<TokenDropSpace x={x} y={y} type={farm} side={sides[left] === city ? topA : leftB} el={TopLeftFarm(mainColor.color)} />);
-                farms.push(<TokenDropSpace x={x} y={y} type={farm} side={sides[top] === city ? rightA : topB} el={TopRightFarm(mainColor.color)} />);
-                farms.push(<TokenDropSpace x={x} y={y} type={farm} side={sides[right] === city ? bottomA : rightB} el={BottomRightFarm(mainColor.color)} />);
-                farms.push(<TokenDropSpace x={x} y={y} type={farm} side={bottomB} el={BottomLeftCurveLargeFarm(minColor.color)} />);
-                farms.push(<TokenDropSpace x={x} y={y} type={farm} side={bottomB} el={BottomLeftCurveSmallFarm(mainColor.color)} />);
+                if (sides[top] === city && sides[right] === city) {
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[left] === city ? topA : leftB} el={TopLeftFarm(mainColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[right] === city ? bottomA : rightB} el={BottomRightFarm(mainColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={bottomB} el={BottomLeftCurveLargeFarm(minColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={bottomB} el={BottomLeftCurveSmallFarm(mainColor.color)} />);
+                } else {
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[left] === city ? topA : leftB} el={TopLeftFarm(mainColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[top] === city ? rightA : topB} el={TopRightFarm(mainColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[right] === city ? bottomA : rightB} el={BottomRightFarm(mainColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={bottomB} el={BottomLeftCurveLargeFarm(minColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={bottomB} el={BottomLeftCurveSmallFarm(mainColor.color)} />);
+                }
             } else {
                 farms.push(TopLeftFarm(mainColor.color));
                 farms.push(TopRightFarm(mainColor.color));
@@ -403,11 +458,18 @@ export default function Tile({x, y, sides, center, connectedCitySides, banner, c
             if (minColor.definition) colorDefinitions.push(minColor.definition);
 
             if (tokenDroppable) {
-                farms.push(<TokenDropSpace x={x} y={y} type={farm} side={topA} el={TopLeftCurveLargeFarm(minColor.color)} />);
-                farms.push(<TokenDropSpace x={x} y={y} type={farm} side={topA} el={TopLeftCurveSmallFarm(mainColor.color)} />);
-                farms.push(<TokenDropSpace x={x} y={y} type={farm} side={sides[top] === city ? rightA : topB} el={TopRightFarm(mainColor.color)} />);
-                farms.push(<TokenDropSpace x={x} y={y} type={farm} side={sides[right] === city ? bottomA : rightB} el={BottomRightFarm(mainColor.color)} />);
-                farms.push(<TokenDropSpace x={x} y={y} type={farm} side={sides[bottom] === city ? leftA : bottomB} el={BottomLeftFarm(mainColor.color)} />);
+                if (sides[bottom] === city && sides[right] === city) {
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={topA} el={TopLeftCurveLargeFarm(minColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={topA} el={TopLeftCurveSmallFarm(mainColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[top] === city ? rightA : topB} el={TopRightFarm(mainColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[bottom] === city ? leftA : bottomB} el={BottomLeftFarm(mainColor.color)} />);
+                } else {
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={topA} el={TopLeftCurveLargeFarm(minColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={topA} el={TopLeftCurveSmallFarm(mainColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[top] === city ? rightA : topB} el={TopRightFarm(mainColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[right] === city ? bottomA : rightB} el={BottomRightFarm(mainColor.color)} />);
+                    farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[bottom] === city ? leftA : bottomB} el={BottomLeftFarm(mainColor.color)} />);
+                }
             } else {
                 farms.push(TopLeftCurveLargeFarm(minColor.color));
                 farms.push(TopLeftCurveSmallFarm(mainColor.color));
@@ -427,10 +489,40 @@ export default function Tile({x, y, sides, center, connectedCitySides, banner, c
         if (bottomLeftColor.definition) colorDefinitions.push(bottomLeftColor.definition);
 
         if (tokenDroppable) {
-            farms.push(<TokenDropSpace x={x} y={y} type={farm} side={sides[left] === city ? topA : leftB} el={TopLeftFarm(topLeftColor.color)} />);
-            farms.push(<TokenDropSpace x={x} y={y} type={farm} side={sides[top] === city ? rightA : topB} el={TopRightFarm(topRightColor.color)} />);
-            farms.push(<TokenDropSpace x={x} y={y} type={farm} side={sides[right] === city ? bottomA : rightB} el={BottomRightFarm(bottomRightColor.color)} />);
-            farms.push(<TokenDropSpace x={x} y={y} type={farm} side={sides[bottom] === city ? leftA : bottomB} el={BottomLeftFarm(bottomLeftColor.color)} />);
+            if (numCities === 2 && sides[top] === city && sides[right] === city) {
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[left] === city ? topA : leftB} el={TopLeftFarm(topLeftColor.color)} />);
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[right] === city ? bottomA : rightB} el={BottomRightFarm(bottomRightColor.color)} />);
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[bottom] === city ? leftA : bottomB} el={BottomLeftFarm(bottomLeftColor.color)} />);
+            } else if (numCities === 2 && sides[top] === city && sides[left] === city) {
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[top] === city ? rightA : topB} el={TopRightFarm(topRightColor.color)} />);
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[right] === city ? bottomA : rightB} el={BottomRightFarm(bottomRightColor.color)} />);
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[bottom] === city ? leftA : bottomB} el={BottomLeftFarm(bottomLeftColor.color)} />);
+            } else if (numCities === 2 && sides[bottom] === city && sides[right] === city) {
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[left] === city ? topA : leftB} el={TopLeftFarm(topLeftColor.color)} />);
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[top] === city ? rightA : topB} el={TopRightFarm(topRightColor.color)} />);
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[bottom] === city ? leftA : bottomB} el={BottomLeftFarm(bottomLeftColor.color)} />);
+            } else if (numCities === 2 && sides[bottom] === city && sides[left] === city) {
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[left] === city ? topA : leftB} el={TopLeftFarm(topLeftColor.color)} />);
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[top] === city ? rightA : topB} el={TopRightFarm(topRightColor.color)} />);
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[right] === city ? bottomA : rightB} el={BottomRightFarm(bottomRightColor.color)} />);
+            } else if (numCities === 3 && sides[bottom] === city && sides[left] === city && sides[top]) {
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[top] === city ? rightA : topB} el={TopRightFarm(topRightColor.color)} />);
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[right] === city ? bottomA : rightB} el={BottomRightFarm(bottomRightColor.color)} />);
+            } else if (numCities === 3 && sides[left] === city && sides[top] === city && sides[right]) {
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[right] === city ? bottomA : rightB} el={BottomRightFarm(bottomRightColor.color)} />);
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[bottom] === city ? leftA : bottomB} el={BottomLeftFarm(bottomLeftColor.color)} />);
+            } else if (numCities === 3 && sides[top] === city && sides[right] === city && sides[bottom]) {
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[left] === city ? topA : leftB} el={TopLeftFarm(topLeftColor.color)} />);
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[bottom] === city ? leftA : bottomB} el={BottomLeftFarm(bottomLeftColor.color)} />);
+            } else if (numCities === 3 && sides[right] === city && sides[bottom] === city && sides[left]) {
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[left] === city ? topA : leftB} el={TopLeftFarm(topLeftColor.color)} />);
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[top] === city ? rightA : topB} el={TopRightFarm(topRightColor.color)} />);
+            } else {
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[left] === city ? topA : leftB} el={TopLeftFarm(topLeftColor.color)} />);
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[top] === city ? rightA : topB} el={TopRightFarm(topRightColor.color)} />);
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[right] === city ? bottomA : rightB} el={BottomRightFarm(bottomRightColor.color)} />);
+                farms.push(<TokenDropSpace team={team} x={x} y={y} type={farm} side={sides[bottom] === city ? leftA : bottomB} el={BottomLeftFarm(bottomLeftColor.color)} />);
+            }
         } else {
             farms.push(TopLeftFarm(topLeftColor.color));
             farms.push(TopRightFarm(topRightColor.color));
@@ -441,68 +533,66 @@ export default function Tile({x, y, sides, center, connectedCitySides, banner, c
 
     // cities and banner
     let cities = [];
-    let numCities = 0;
-    for (const side of [top, right, bottom, left]) if (sides[side] === city) numCities++;
     if (!connectedCitySides || numCities === 1) {
         if (sides[top] === city) {
             let cityColor = createCityColors(colors[top]);
             if (cityColor.definition) colorDefinitions.push(cityColor.definition);
-            if (tokenDroppable) cities.push(<TokenDropSpace x={x} y={y} type={city} side={top} el={TopCity(cityColor.color)} />);
+            if (tokenDroppable) cities.push(<TokenDropSpace team={team} x={x} y={y} type={city} side={top} el={TopCity(cityColor.color)} />);
             else cities.push(TopCity(cityColor.color));
         }
         if (sides[right] === city) {
             let cityColor = createCityColors(colors[right]);
             if (cityColor.definition) colorDefinitions.push(cityColor.definition);
-            if (tokenDroppable) cities.push(<TokenDropSpace x={x} y={y} type={city} side={right} el={RightCity(cityColor.color)} />);
+            if (tokenDroppable) cities.push(<TokenDropSpace team={team} x={x} y={y} type={city} side={right} el={RightCity(cityColor.color)} />);
             else cities.push(RightCity(cityColor.color));
         }
         if (sides[bottom] === city) {
             let cityColor = createCityColors(colors[bottom]);
             if (cityColor.definition) colorDefinitions.push(cityColor.definition);
-            if (tokenDroppable) cities.push(<TokenDropSpace x={x} y={y} type={city} side={bottom} el={BottomCity(cityColor.color)} />);
+            if (tokenDroppable) cities.push(<TokenDropSpace team={team} x={x} y={y} type={city} side={bottom} el={BottomCity(cityColor.color)} />);
             else cities.push(BottomCity(cityColor.color));
         }
         if (sides[left] === city) {
             let cityColor = createCityColors(colors[left]);
             if (cityColor.definition) colorDefinitions.push(cityColor.definition);
-            if (tokenDroppable) cities.push(<TokenDropSpace x={x} y={y} type={city} side={left} el={LeftCity(cityColor.color)} />);
+            if (tokenDroppable) cities.push(<TokenDropSpace team={team} x={x} y={y} type={city} side={left} el={LeftCity(cityColor.color)} />);
             else cities.push(LeftCity(cityColor.color));
         }
     } else if (numCities === 2) {
         if (sides[top] === city && sides[right] === city) {
             let cityColor = createCityColors(colors[top]);
             if (cityColor.definition) colorDefinitions.push(cityColor.definition);
-            if (tokenDroppable) cities.push(<TokenDropSpace x={x} y={y} type={city} side={top} el={TopRightCity(cityColor.color)} />);
+            if (tokenDroppable) cities.push(<TokenDropSpace team={team} x={x} y={y} type={city} side={top} el={TopRightCity(cityColor.color)} />);
             else cities.push(TopRightCity(cityColor.color));
             if (banner) cities.push(TopRightBanner(dark))
         } else if (sides[right] === city && sides[bottom] === city) {
             let cityColor = createCityColors(colors[bottom]);
             if (cityColor.definition) colorDefinitions.push(cityColor.definition);
-            if (tokenDroppable) cities.push(<TokenDropSpace x={x} y={y} type={city} side={bottom} el={BottomRightCity(cityColor.color)} />);
+            if (tokenDroppable) cities.push(<TokenDropSpace team={team} x={x} y={y} type={city} side={bottom} el={BottomRightCity(cityColor.color)} />);
             else cities.push(BottomRightCity(cityColor.color));
             if (banner) cities.push(BottomRightBanner(dark))
         } else if (sides[bottom] === city && sides[left] === city) {
             let cityColor = createCityColors(colors[bottom]);
             if (cityColor.definition) colorDefinitions.push(cityColor.definition);
-            if (tokenDroppable) cities.push(<TokenDropSpace x={x} y={y} type={city} side={bottom} el={BottomLeftCity(cityColor.color)} />);
+            if (tokenDroppable) cities.push(<TokenDropSpace team={team} x={x} y={y} type={city} side={bottom} el={BottomLeftCity(cityColor.color)} />);
             else cities.push(BottomLeftCity(cityColor.color));
             if (banner) cities.push(BottomLeftBanner(dark))
         } else if (sides[left] === city && sides[top] === city) {
             let cityColor = createCityColors(colors[top]);
             if (cityColor.definition) colorDefinitions.push(cityColor.definition);
-            if (tokenDroppable) cities.push(<TokenDropSpace x={x} y={y} type={city} side={top} el={TopLeftCity(cityColor.color)} />);
+            if (tokenDroppable) cities.push(<TokenDropSpace team={team} x={x} y={y} type={city} side={top} el={TopLeftCity(cityColor.color)} />);
             else cities.push(TopLeftCity(cityColor.color));
             if (banner) cities.push(TopLeftBanner(dark))
         } else if (sides[top] === city && sides[bottom] === city) {
             let cityColor = createCityColors(colors[top]);
             if (cityColor.definition) colorDefinitions.push(cityColor.definition);
-            if (tokenDroppable) cities.push(<TokenDropSpace x={x} y={y} type={city} side={top} el={TopBottomCity(cityColor.color)} />);
+            if (tokenDroppable) cities.push(<TokenDropSpace team={team} x={x} y={y} type={city} side={top} el={TopBottomCity(cityColor.color)} />);
             else cities.push(TopBottomCity(cityColor.color));
             if (banner) cities.push(TopMiddleBanner(dark))
         } else if (sides[left] === city && sides[right] === city) {
             let cityColor = createCityColors(colors[right]);
             if (cityColor.definition) colorDefinitions.push(cityColor.definition);
-            if (tokenDroppable) cities.push(<TokenDropSpace x={x} y={y} type={city} side={right} el={RightLeftCity(cityColor.color)} />);
+            if (tokenDroppable) cities.push(<TokenDropSpace team={team} x={x} y={y} type={city} side={right} el={RightLeftCity(cityColor.color)} />);
             else cities.push(RightLeftCity(cityColor.color));
             if (banner) cities.push(LeftMiddleBanner(dark))
         }
@@ -510,32 +600,32 @@ export default function Tile({x, y, sides, center, connectedCitySides, banner, c
         if (sides[top] === city && sides[right] === city && sides[bottom] === city) {
             let cityColor = createCityColors(colors[right]);
             if (cityColor.definition) colorDefinitions.push(cityColor.definition);
-            if (tokenDroppable) cities.push(<TokenDropSpace x={x} y={y} type={city} side={right} el={TopRightBottomCity(cityColor.color)} />);
+            if (tokenDroppable) cities.push(<TokenDropSpace team={team} x={x} y={y} type={city} side={right} el={TopRightBottomCity(cityColor.color)} />);
             else cities.push(TopRightBottomCity(cityColor.color));
             if (banner) cities.push(TopRightBanner(dark))
         } else if (sides[right] === city && sides[bottom] === city && sides[left] === city) {
             let cityColor = createCityColors(colors[bottom]);
             if (cityColor.definition) colorDefinitions.push(cityColor.definition);
-            if (tokenDroppable) cities.push(<TokenDropSpace x={x} y={y} type={city} side={bottom} el={RightBottomLeftCity(cityColor.color)} />);
+            if (tokenDroppable) cities.push(<TokenDropSpace team={team} x={x} y={y} type={city} side={bottom} el={RightBottomLeftCity(cityColor.color)} />);
             else cities.push(RightBottomLeftCity(cityColor.color));
             if (banner) cities.push(BottomLeftBanner(dark))
         } else if (sides[bottom] === city && sides[left] === city && sides[top] === city) {
             let cityColor = createCityColors(colors[left]);
             if (cityColor.definition) colorDefinitions.push(cityColor.definition);
-            if (tokenDroppable) cities.push(<TokenDropSpace x={x} y={y} type={city} side={left} el={BottomLeftTopCity(cityColor.color)} />);
+            if (tokenDroppable) cities.push(<TokenDropSpace team={team} x={x} y={y} type={city} side={left} el={BottomLeftTopCity(cityColor.color)} />);
             else cities.push(BottomLeftTopCity(cityColor.color));
             if (banner) cities.push(TopLeftBanner(dark))
         } else if (sides[left] === city && sides[top] === city && sides[right] === city) {
             let cityColor = createCityColors(colors[top]);
             if (cityColor.definition) colorDefinitions.push(cityColor.definition);
-            if (tokenDroppable) cities.push(<TokenDropSpace x={x} y={y} type={city} side={top} el={LeftTopRightCity(cityColor.color)} />);
+            if (tokenDroppable) cities.push(<TokenDropSpace team={team} x={x} y={y} type={city} side={top} el={LeftTopRightCity(cityColor.color)} />);
             else cities.push(LeftTopRightCity(cityColor.color));
             if (banner) cities.push(TopLeftBanner(dark))
         }
     } else if (numCities === 4) {
         let cityColor = createCityColors(colors[top]);
         if (cityColor.definition) colorDefinitions.push(cityColor.definition);
-        if (tokenDroppable) cities.push(<TokenDropSpace x={x} y={y} type={city} side={top} el={TopRightBottomLeftCity(cityColor.color)} />);
+        if (tokenDroppable) cities.push(<TokenDropSpace team={team} x={x} y={y} type={city} side={top} el={TopRightBottomLeftCity(cityColor.color)} />);
         else cities.push(TopRightBottomLeftCity(cityColor.color));
         if (banner) cities.push(TopLeftBanner(dark))
     }
@@ -546,47 +636,47 @@ export default function Tile({x, y, sides, center, connectedCitySides, banner, c
         if (sides[top] === road && sides[right] === road) {
             let roadColor = createRoadColors(colors[top], topB);
             if (roadColor.definition) colorDefinitions.push(roadColor.definition);
-            if (tokenDroppable) roads.push(<TokenDropSpace x={x} y={y} type={road} side={top} el={TopRightRoad(roadColor.color)} />);
+            if (tokenDroppable) roads.push(<TokenDropSpace team={team} x={x} y={y} type={road} side={top} el={TopRightRoad(roadColor.color)} />);
             else roads.push(TopRightRoad(roadColor.color));
         } else if (sides[right] === road && sides[bottom] === road) {
             let roadColor = createRoadColors(colors[right], rightB);
             if (roadColor.definition) colorDefinitions.push(roadColor.definition);
-            if (tokenDroppable) roads.push(<TokenDropSpace x={x} y={y} type={road} side={right} el={BottomRightRoad(roadColor.color)} />);
+            if (tokenDroppable) roads.push(<TokenDropSpace team={team} x={x} y={y} type={road} side={right} el={BottomRightRoad(roadColor.color)} />);
             else roads.push(BottomRightRoad(roadColor.color));
         } else if (sides[bottom] === road && sides[left] === road) {
             let roadColor = createRoadColors(colors[bottom], bottomB);
             if (roadColor.definition) colorDefinitions.push(roadColor.definition);
-            if (tokenDroppable) roads.push(<TokenDropSpace x={x} y={y} type={road} side={bottom} el={BottomLeftRoad(roadColor.color)} />);
+            if (tokenDroppable) roads.push(<TokenDropSpace team={team} x={x} y={y} type={road} side={bottom} el={BottomLeftRoad(roadColor.color)} />);
             else roads.push(BottomLeftRoad(roadColor.color));
         } else if (sides[left] === road && sides[top] === road) {
             let roadColor = createRoadColors(colors[left], leftB);
             if (roadColor.definition) colorDefinitions.push(roadColor.definition);
-            if (tokenDroppable) roads.push(<TokenDropSpace x={x} y={y} type={road} side={left} el={TopLeftRoad(roadColor.color)} />);
+            if (tokenDroppable) roads.push(<TokenDropSpace team={team} x={x} y={y} type={road} side={left} el={TopLeftRoad(roadColor.color)} />);
             else roads.push(TopLeftRoad(roadColor.color));
         }
     } else {
         if (sides[top] === road) {
             let roadColor = createRoadColors(colors[top], top);
             if (roadColor.definition) colorDefinitions.push(roadColor.definition);
-            if (tokenDroppable) roads.push(<TokenDropSpace x={x} y={y} type={road} side={top} el={TopRoad(roadColor.color)} />);
+            if (tokenDroppable) roads.push(<TokenDropSpace team={team} x={x} y={y} type={road} side={top} el={TopRoad(roadColor.color)} />);
             else roads.push(TopRoad(roadColor.color));
         }
         if (sides[right] === road) {
             let roadColor = createRoadColors(colors[right], right);
             if (roadColor.definition) colorDefinitions.push(roadColor.definition);
-            if (tokenDroppable) roads.push(<TokenDropSpace x={x} y={y} type={road} side={right} el={RightRoad(roadColor.color)} />);
+            if (tokenDroppable) roads.push(<TokenDropSpace team={team} x={x} y={y} type={road} side={right} el={RightRoad(roadColor.color)} />);
             else roads.push(RightRoad(roadColor.color));
         }
         if (sides[bottom] === road) {
             let roadColor = createRoadColors(colors[bottom], bottom);
             if (roadColor.definition) colorDefinitions.push(roadColor.definition);
-            if (tokenDroppable) roads.push(<TokenDropSpace x={x} y={y} type={road} side={bottom} el={BottomRoad(roadColor.color)} />);
+            if (tokenDroppable) roads.push(<TokenDropSpace team={team} x={x} y={y} type={road} side={bottom} el={BottomRoad(roadColor.color)} />);
             else roads.push(BottomRoad(roadColor.color));
         }
         if (sides[left] === road) {
             let roadColor = createRoadColors(colors[left], left);
             if (roadColor.definition) colorDefinitions.push(roadColor.definition);
-            if (tokenDroppable) roads.push(<TokenDropSpace x={x} y={y} type={road} side={left} el={LeftRoad(roadColor.color)} />);
+            if (tokenDroppable) roads.push(<TokenDropSpace team={team} x={x} y={y} type={road} side={left} el={LeftRoad(roadColor.color)} />);
             else roads.push(LeftRoad(roadColor.color));
         }
     }
@@ -594,7 +684,7 @@ export default function Tile({x, y, sides, center, connectedCitySides, banner, c
     // cloisters
     let cloisters = [];
     if (center === cloister) {
-        if (tokenDroppable) cloisters.push(<TokenDropSpace x={x} y={y} type={cloister} side={""} el={Cloister(centerColor ? ColorsMap[centerColor] : gray)} />);
+        if (tokenDroppable) cloisters.push(<TokenDropSpace team={team} x={x} y={y} type={cloister} side={""} el={Cloister(centerColor ? ColorsMap[centerColor] : gray)} />);
         else cloisters.push(Cloister(centerColor ? ColorsMap[centerColor] : gray));
     }
 
@@ -772,42 +862,27 @@ export default function Tile({x, y, sides, center, connectedCitySides, banner, c
         }
     }
 
-    const [{ opacity }, drag, preview] = useDrag(() => ({
-        type: "tile",
-        item: { "type": "tile", sides, center, connectedCitySides, banner },
-        canDrag: () => x === 999 && y === 999,
-        end: (item, monitor) => {
-            const dropResult = monitor.getDropResult();
-            if (item && dropResult) placeTile(player, dropResult.x, dropResult.y);
-        },
-        collect: (monitor) => ({
-            opacity: monitor.isDragging() ? 0.4 : 1,
-        }),
-    }), [x, y, sides, center, connectedCitySides, banner, placeTile]);
-
     return (
-            <div ref={preview}>
-                <div ref={drag} style={{ opacity }} className="w-full h-full overflow-hidden bg-zinc-900 box-border border border-zinc-100">
-                    <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 75">
-                            <defs>{colorDefinitions.map((el, i) => React.cloneElement(el, { key:  i }))}</defs>
-                            {farms.map((el, i) => React.cloneElement(el, { key:  i }))}
-                            {roads.map((el, i) => React.cloneElement(el, { key:  i }))}
-                            {cities.map((el, i) => React.cloneElement(el, { key:  i }))}
-                            {cloisters.map((el, i) => React.cloneElement(el, { key:  i }))}
-                            {token ? token : <></>}
-                            {
-                                x === 0 && y === 0 ?
-                                <>
-                                    <text x="33" y="8" className="font-bold text-[0.4rem]" fill={dark}>city</text>
-                                    <text x="31" y="25" className="font-bold text-[0.4rem]" fill={gray}>farm</text>
-                                    <text x="31" y="40" className="font-bold text-[0.4rem]" fill={dark}>road</text>
-                                    <text x="31" y="58" className="font-bold text-[0.4rem]" fill={gray}>farm</text>
-                                </> : null
-                            }
-                        </svg>
-                    </div>
-                </div>
+        <div ref={ ref } { ...props } className="w-full h-full overflow-hidden bg-zinc-900 box-border border border-zinc-100">
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 75">
+                    <defs>{colorDefinitions.map((el, i) => React.cloneElement(el, { key:  i }))}</defs>
+                    {farms.map((el, i) => React.cloneElement(el, { key:  i }))}
+                    {roads.map((el, i) => React.cloneElement(el, { key:  i }))}
+                    {cities.map((el, i) => React.cloneElement(el, { key:  i }))}
+                    {cloisters.map((el, i) => React.cloneElement(el, { key:  i }))}
+                    {token ? token : <></>}
+                    {
+                        x === 0 && y === 0 ?
+                        <>
+                            <text x="33" y="8" className="font-bold text-[0.4rem]" fill={dark}>city</text>
+                            <text x="31" y="25" className="font-bold text-[0.4rem]" fill={gray}>farm</text>
+                            <text x="31" y="40" className="font-bold text-[0.4rem]" fill={dark}>road</text>
+                            <text x="31" y="58" className="font-bold text-[0.4rem]" fill={gray}>farm</text>
+                        </> : null
+                    }
+                </svg>
             </div>
+        </div>
     )
-}
+})

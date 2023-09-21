@@ -1,47 +1,49 @@
-import React, { useEffect, useState, forwardRef, useCallback } from "react";
+import React, { useEffect, useState, forwardRef, useCallback, createRef } from "react";
 import { BsArrowClockwise, BsArrowUp } from "react-icons/bs";
 import { GiClick } from "react-icons/gi";
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from 'react-dnd-html5-backend'
-import { TouchBackend } from 'react-dnd-touch-backend'
-import { isMobile } from 'react-device-detect';
-import Tile from "./Tile";
+import { Tile, DraggableTile } from "./Tile";
 import TileDropSpace from "./TileDropSpace";
-import { Token } from "./Token";
+import { DraggableToken } from "./Token";
+import { DndContext, PointerSensor, useSensors, useSensor, closestCenter, rectIntersection } from '@dnd-kit/core';
 
 export const Game = forwardRef((props, ref) => {
     // eslint-disable-next-line no-unused-vars
     const { ws, game, network, chat, connected, error } = props;
 
     // websocket messages
-    const placeTile = (team, x, y) => {
+    const sendPlaceTileAction = useCallback((team, x, y) => {
         if (!ws.current) return;
         ws.current.send(JSON.stringify({"ActionType": "PlaceTile", "Team": team, "MoreDetails": {"X": x, "Y": y}}));
-    }
+    })
 
-    const rotateTile = (team) => {
+    const sendRotateTileAction = useCallback((team) => {
         if (!ws.current) return;
         ws.current.send(JSON.stringify({"ActionType": "RotateTileRight", "Team": team}));
-    }
+    })
 
-    const placeToken = (team, x, y, type, side) => {
+    const sendPlaceTokenAction = useCallback((team, x, y, type, side) => {
         if (!ws.current) return;
         ws.current.send(JSON.stringify({"ActionType": "PlaceToken", "Team": team, "MoreDetails": {"X": x, "Y": y, "Type": type, "Side": side}}));
-    }
+    })
 
-    const pass = (team) => {
+    const sendPassAction = useCallback((team) => {
         if (!ws.current) return;
         ws.current.send(JSON.stringify({"ActionType": "PlaceToken", "Team": team, "MoreDetails": {"Pass": true}}));
-    }
+    })
 
     // game data
+    const [team, setCurrentTeam] = useState("");
+    useEffect(() => {
+        if (network && connected) setCurrentTeam(connected[network.Name])
+    }, [network, connected])
+
     const [turn, setTurn] = useState("");
     const [board, setBoard] = useState([]);
     const [tokens, setTokens] = useState({});
     const [boardTokens, setBoardTokens] = useState([]);
     const [scores, setScores] = useState({});
-    const [playTile, setPlayTile] = useState(null);
-    const [lastPlacedTile, setLastPlacedTile] = useState(null);
+    const [playTile, setPlayTile] = useState();
+    const [lastPlacedTile, setLastPlacedTile] = useState();
     const [tilesRemaining, setTilesRemaining] = useState(0);
     useEffect(() => {
         if (game) setTurn(game.Turn)
@@ -53,12 +55,6 @@ export const Game = forwardRef((props, ref) => {
         if (game && game.MoreData) setLastPlacedTile(game.MoreData.LastPlacedTile)
         if (game && game.MoreData) setTilesRemaining(game.MoreData.TilesRemaining)
     }, [game])
-
-    // network data
-    const [team, setCurrentTeam] = useState("");
-    useEffect(() => {
-        if (network && connected) setCurrentTeam(connected[network.Name])
-    }, [network, connected])
 
     // board rendering
     const [zoom, setZoom] = useState(1);
@@ -98,13 +94,32 @@ export const Game = forwardRef((props, ref) => {
         setXYToPlaceable(xyToPlaceable);
         setXYToTile(newXYToTile);
     }, [board]);
-    
+
+    // drag and drop
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        })
+    )
+
+    const handleDragEnd = useCallback((e) => {
+        if (!e.over || team !== game.Turn || game.Winners.length > 0) return
+
+        let over = e.over.data.current
+        let active = e.active.data.current
+
+        if (active.type === "tile") sendPlaceTileAction(team, over.x, over.y)
+        else if (active.type === "token") sendPlaceTokenAction(team, over.x, over.y, over.type, over.side)
+    }, [team, game, sendPlaceTileAction, sendPlaceTokenAction])
+
     // board resize logic
     const [tileSize, setTileSize] = useState(0);
 
     const handleResize = useCallback(() => {
-    if (!ref || !ref.current) return;
-    else setTileSize(ref.current.clientHeight/6);
+        if (!ref || !ref.current) return;
+        else setTileSize(ref.current.clientHeight/6);
     }, [ref])
 
     useEffect(() => handleResize());
@@ -114,10 +129,23 @@ export const Game = forwardRef((props, ref) => {
         return _ => window.removeEventListener("resize", handleResize)
     }, [handleResize]);
 
+    const scrollRef = createRef()
+    const [scrollX, setScrollX] = useState(0)
+    const [scrollY, setScrollY] = useState(0)
+
+    const handleScroll = (e) => {
+        const { scrollHeight, scrollWidth, scrollTop, scrollLeft, clientHeight, clientWidth } = e.target;
+        const sX = scrollLeft
+        const sY = scrollTop
+
+        setScrollX(sX)
+        setScrollY(sY)
+    }
+
     return (
-        <DndProvider backend={ isMobile ? TouchBackend : HTML5Backend }>
+        <DndContext autoScroll={ false } onDragEnd={ handleDragEnd } sensors={ sensors } collisionDetection={ playTile ? rectIntersection : closestCenter }>
             <div className="w-full flex flex-col justify-center items-center grow">
-                <div className="box-border border border-zinc-100 relative overflow-auto w-full flex items-center justify-center flex-col grow">
+                <div ref={ scrollRef } onScrollCapture={ handleScroll } className="box-border border border-zinc-100 relative overflow-auto w-full flex items-center justify-center flex-col grow">
                     <div className="sticky w-full top-0 h-0 flex justify-between z-[999]">
                         <div className="m-2 font-bold text-sm">
                             score
@@ -155,7 +183,7 @@ export const Game = forwardRef((props, ref) => {
                                         <div key={ `${x}${y}` } className={ lastPlacedTile && lastPlacedTile.X === x && lastPlacedTile.Y === y ? `box-border border-4 border-${ turn }-500` : "" } style={{ width: tileSize*zoom, height: tileSize*zoom }}>
                                         {
                                             xyToPlaceable[`${ x }${ y }`] ?
-                                                <TileDropSpace x={ x } y={ y } /> :
+                                                <TileDropSpace x={ x } y={ y } team={ team } /> :
                                                 xyToTile[`${ x }${ y }`] ?
                                                     <Tile x={ xyToTile[`${x}${y}`].X } y={ xyToTile[`${x}${y}`].Y }
                                                             sides={ xyToTile[`${x}${y}`].Sides }
@@ -167,6 +195,7 @@ export const Game = forwardRef((props, ref) => {
                                                             centerColor={ xyToTile[`${x}${y}`].CenterTeam }
                                                             tokens={ boardTokens }
                                                             tokenDroppable={ lastPlacedTile && lastPlacedTile.X === xyToTile[`${x}${y}`].X && lastPlacedTile.Y === xyToTile[`${x}${y}`].Y }
+                                                            team={ team }
                                                     /> : null
                                         }
                                         </div>)
@@ -181,46 +210,44 @@ export const Game = forwardRef((props, ref) => {
                     {
                         turn === team && !playTile ? 
                             <>
-                                <div className="flex flex-col items-center text-zinc-400 max-w-[20%]">
+                                <div className="flex flex-col items-center text-zinc-400 max-w-[20%] select-none">
                                     <div className="text-xs font-light italic mb-1 text-center">Drag token to place</div>
                                     <BsArrowUp />    
                                 </div>
                                 <div className="flex items-center">
                                     <div className="mr-2 font-bold">{ team ? tokens[team] : "0" }</div>
                                     <div style={{ width: tileSize/6, height: tileSize/6 }}>
-                                        <Token size={tileSize/6} player={team} placeToken={placeToken}/>
+                                        <DraggableToken id={ "token" } size={ tileSize/6 } team={ team } 
+                                            scrollX={ scrollX } scrollY={ scrollY } />
                                     </div>
                                 </div>
-                                <div className="px-4 py-2 text-sm font-bold bg-zinc-600 cursor-pointer" onClick={ () => pass(team) }>
+                                <div className="px-4 py-2 text-sm font-bold bg-zinc-600 cursor-pointer" onClick={ () => sendPassAction(team) }>
                                     skip
                                 </div>
-                                <div className="flex flex-col items-center text-zinc-400 max-w-[20%]">
+                                <div className="flex flex-col items-center text-zinc-400 max-w-[20%] select-none">
                                     <div className="text-xs font-light italic mb-1 text-center">Or click skip to pass</div>
                                     <GiClick /> 
                                 </div>
                             </> :
                             <>
-                                <div className="flex flex-col items-center text-zinc-400 max-w-[20%]">
+                                <div className="flex flex-col items-center text-zinc-400 max-w-[20%] select-none">
                                     <div className="text-xs font-light italic mb-1 text-center">Click tile to rotate</div>
                                     <BsArrowClockwise />    
                                 </div>
                                 <div className="box-border border border-zinc-100" style={{ width: tileSize, height: tileSize }}>
                                     {
                                         turn === team ?
-                                            <div className="w-full h-full cursor-pointer" onClick={ (e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                rotateTile(connected[network.Name]);
-                                            }}>
-                                                <Tile x={ playTile.X } y={ playTile.Y } sides={ playTile.Sides } center={ playTile.Center }
+                                            <div className="w-full h-full cursor-pointer" onClick={ () => game.Winners.length === 0 ? sendRotateTileAction(team) : null }>
+                                                <DraggableTile x={ playTile.X } y={ playTile.Y } sides={ playTile.Sides } center={ playTile.Center }
                                                         connectedCitySides={ playTile.ConnectedCitySides } banner={ playTile.Banner }
                                                         colors={ playTile.Teams } farmColors={ playTile.FarmTeams }
                                                         centerColor={ playTile.CenterTeam } tokens={ [] } tokenDroppable={ false }
-                                                        player={ connected[network.Name] } placeTile={ placeTile } /> 
+                                                        team={ team } 
+                                                        scrollX={ scrollX } scrollY={ scrollY } /> 
                                             </div> : null
                                     }
                                 </div>
-                                <div className="flex flex-col items-center text-zinc-400 max-w-[20%]">
+                                <div className="flex flex-col items-center text-zinc-400 max-w-[20%] select-none">
                                     <div className="text-xs font-light italic mb-1 text-center">Drag tile to place</div>
                                     <BsArrowUp />    
                                 </div>
@@ -228,6 +255,6 @@ export const Game = forwardRef((props, ref) => {
                     }
                 </div>
             </div>
-        </DndProvider>
+        </DndContext>
     )
 })
