@@ -335,7 +335,14 @@ export function DraggableTile({ x, y, sides, center, connectedCitySides, banner,
         data: {
             type: "tile",
             x: x,
-            y: y
+            y: y,
+            top: sides[top],
+            right: sides[right],
+            bottom: sides[bottom],
+            left: sides[left],
+            center: center,
+            connectedCitySides: connectedCitySides,
+            banner: banner
         }
     });
 

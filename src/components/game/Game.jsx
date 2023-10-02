@@ -11,9 +11,25 @@ export const Game = forwardRef((props, ref) => {
     const { ws, game, network, chat, connected, error } = props;
 
     // websocket messages
-    const sendPlaceTileAction = useCallback((team, x, y) => {
+    const sendPlaceTileAction = useCallback((team, x, y, top, right, bottom, left, center, connectedCitySides, banner) => {
         if (!ws.current) return;
-        ws.current.send(JSON.stringify({"ActionType": "PlaceTile", "Team": team, "MoreDetails": {"X": x, "Y": y}}));
+        ws.current.send(JSON.stringify({
+            "ActionType": "PlaceTile", 
+            "Team": team, 
+            "MoreDetails": {
+                "X": x, 
+                "Y": y, 
+                "Tile": {
+                    "Top": top, 
+                    "Right": right, 
+                    "Bottom": bottom, 
+                    "Left": left, 
+                    "Center": center,
+                    "ConnectedCitySides": connectedCitySides, 
+                    "Banner": banner
+                }
+            }
+        }));
     })
 
     const sendRotateTileAction = useCallback((team) => {
@@ -110,7 +126,7 @@ export const Game = forwardRef((props, ref) => {
         let over = e.over.data.current
         let active = e.active.data.current
 
-        if (active.type === "tile") sendPlaceTileAction(team, over.x, over.y)
+        if (active.type === "tile") sendPlaceTileAction(team, over.x, over.y, active.top, active.right, active.bottom, active.left, active.center, active.connectedCitySides, active.banner)
         else if (active.type === "token") sendPlaceTokenAction(team, over.x, over.y, over.type, over.side)
     }, [team, game, sendPlaceTileAction, sendPlaceTokenAction])
 
@@ -236,7 +252,7 @@ export const Game = forwardRef((props, ref) => {
                                 </div>
                                 <div className="box-border border border-zinc-100" style={{ width: tileSize, height: tileSize }}>
                                     {
-                                        turn === team ?
+                                        playTile ?
                                             <div className="w-full h-full cursor-pointer" onClick={ () => game.Winners.length === 0 ? sendRotateTileAction(team) : null }>
                                                 <DraggableTile x={ playTile.X } y={ playTile.Y } sides={ playTile.Sides } center={ playTile.Center }
                                                         connectedCitySides={ playTile.ConnectedCitySides } banner={ playTile.Banner }

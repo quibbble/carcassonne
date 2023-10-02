@@ -40,5 +40,5 @@ What to do on your turn:
 ## How to Win 🏆
 The game ends when all terrain tiles have been placed. At this point, final scoring occurs:
 - Score any remaining cities and roads. Each claimed but incomplete city or road segement counts as 1 point. City pennants count for an additional 1 point.
-- The player with the most farmers in a field wins the field. Award 3 points for each completed city adjacent to the claimed fields. Note that several fields can supply a single city in which case the player with the most farmers in the fields adjacent to the city wins the points for that city.
+- The player with the most farmers in a field wins the field. Award 3 points for each completed city that touches the claimed field. If more than one claimed field touches a city then each claimed field is awarded 3 points for that city.
 - The player with the most points wins.
