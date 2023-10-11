@@ -1,5 +1,3 @@
-import React from "react";
-
 // single city
 export const TopCity = (fill) => <path fill={ fill }  d="M0,0H75A67.6,67.6,0,0,1,0,0Z"/>;
 export const RightCity = (fill) => <path fill={ fill }  d="M75,0h0V75h0A67.6,67.6,0,0,1,75,0Z"/>;
