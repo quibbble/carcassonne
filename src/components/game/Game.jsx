@@ -4,7 +4,11 @@ import { GiClick } from "react-icons/gi";
 import { Tile, DraggableTile } from "./Tile";
 import TileDropSpace from "./TileDropSpace";
 import { DraggableToken } from "./Token";
-import { DndContext, PointerSensor, useSensors, useSensor, closestCenter, rectIntersection } from '@dnd-kit/core';
+import { DndContext, PointerSensor, useSensors, useSensor, rectIntersection, closestCenter, pointerWithin, closestCorners } from '@dnd-kit/core';
+import { BOTTOM, LEFT, RIGHT, TOP } from "./models/side";
+import { FARM } from "./models/structure";
+import { BOTTOMA, BOTTOMB, LEFTA, LEFTB, RIGHTA, RIGHTB, TOPA, TOPB } from "./models/farmside";
+import { COLORMAP } from "./models/color";
 
 export const Game = forwardRef((props, ref) => {
     // eslint-disable-next-line no-unused-vars
@@ -30,22 +34,22 @@ export const Game = forwardRef((props, ref) => {
                 }
             }
         }));
-    })
+    }, [ws])
 
     const sendRotateTileAction = useCallback((team) => {
         if (!ws.current) return;
         ws.current.send(JSON.stringify({"ActionType": "RotateTileRight", "Team": team}));
-    })
+    }, [ws])
 
     const sendPlaceTokenAction = useCallback((team, x, y, type, side) => {
         if (!ws.current) return;
         ws.current.send(JSON.stringify({"ActionType": "PlaceToken", "Team": team, "MoreDetails": {"X": x, "Y": y, "Type": type, "Side": side}}));
-    })
+    }, [ws])
 
     const sendPassAction = useCallback((team) => {
         if (!ws.current) return;
         ws.current.send(JSON.stringify({"ActionType": "PlaceToken", "Team": team, "MoreDetails": {"Pass": true}}));
-    })
+    }, [ws])
 
     // game data
     const [team, setCurrentTeam] = useState("");
@@ -126,8 +130,8 @@ export const Game = forwardRef((props, ref) => {
         let over = e.over.data.current
         let active = e.active.data.current
 
-        if (active.type === "tile") sendPlaceTileAction(team, over.x, over.y, active.top, active.right, active.bottom, active.left, active.center, active.connectedCitySides, active.banner)
-        else if (active.type === "token") sendPlaceTokenAction(team, over.x, over.y, over.type, over.side)
+        if (active.type === "tile") sendPlaceTileAction(team, over.x, over.y, active.tile.Sides.Top.Structure, active.tile.Sides.Right.Structure, active.tile.Sides.Bottom.Structure, active.tile.Sides.Left.Structure, active.tile.Sides.Center.Structure, active.tile.CityConn, active.tile.Banner)
+        else if (active.type === "token" && over.sides) sendPlaceTokenAction(team, over.x, over.y, over.type, over.sides[0])
     }, [team, game, sendPlaceTileAction, sendPlaceTokenAction])
 
     // board resize logic
@@ -159,7 +163,7 @@ export const Game = forwardRef((props, ref) => {
     }
 
     return (
-        <DndContext autoScroll={ false } onDragEnd={ handleDragEnd } sensors={ sensors } collisionDetection={ playTile ? rectIntersection : closestCenter }>
+        <DndContext autoScroll={ false } onDragEnd={ handleDragEnd } sensors={ sensors }>
             <div className="w-full flex flex-col justify-center items-center grow">
                 <div ref={ scrollRef } onScrollCapture={ handleScroll } className="box-border border border-zinc-100 relative overflow-auto w-full flex items-center justify-center flex-col grow">
                     <div className="sticky w-full top-0 h-0 flex justify-between z-[999]">
@@ -178,10 +182,10 @@ export const Game = forwardRef((props, ref) => {
                         <div className="m-2">
                             <div onClick={ () => {
                                 if (zoom < 1) setZoom(zoom + 0.1)
-                            }} className="rounded-full w-10 h-10 bg-zinc-600 cursor-pointer font-bold text-3xl flex items-center justify-center mb-2">+</div>
+                            }} className="rounded-full w-10 h-10 bg-zinc-600 cursor-pointer font-bold text-3xl flex items-center justify-center mb-2 select-none">+</div>
                             <div onClick={() => {
                             if (zoom >= .4) setZoom(zoom - 0.1)
-                        }} className="rounded-full w-10 h-10 bg-zinc-600 cursor-pointer font-bold text-3xl flex items-center justify-center">-</div>
+                        }} className="rounded-full w-10 h-10 bg-zinc-600 cursor-pointer font-bold text-3xl flex items-center justify-center select-none">-</div>
                         </div>
                     </div>
                     <div className="sticky w-full top-[93%] h-0 flex justify-between z-[999]">
@@ -202,16 +206,67 @@ export const Game = forwardRef((props, ref) => {
                                                 <TileDropSpace x={ x } y={ y } team={ team } /> :
                                                 xyToTile[`${ x }${ y }`] ?
                                                     <Tile x={ xyToTile[`${x}${y}`].X } y={ xyToTile[`${x}${y}`].Y }
-                                                            sides={ xyToTile[`${x}${y}`].Sides }
-                                                            center={ xyToTile[`${x}${y}`].Center }
-                                                            connectedCitySides={ xyToTile[`${x}${y}`].ConnectedCitySides }
-                                                            banner={ xyToTile[`${x}${y}`].Banner }
-                                                            colors={ xyToTile[`${x}${y}`].Teams }
-                                                            farmColors={ xyToTile[`${x}${y}`].FarmTeams }
-                                                            centerColor={ xyToTile[`${x}${y}`].CenterTeam }
-                                                            tokens={ boardTokens }
+                                                            tile={{
+                                                                Sides: {
+                                                                    Top: {
+                                                                        Structure: xyToTile[`${x}${y}`].Sides[TOP],
+                                                                        Colors: xyToTile[`${x}${y}`].Teams[TOP] ? xyToTile[`${x}${y}`].Teams[TOP].map((team) => COLORMAP[team]) : []
+                                                                    },
+                                                                    Right: {
+                                                                        Structure: xyToTile[`${x}${y}`].Sides[RIGHT],
+                                                                        Colors: xyToTile[`${x}${y}`].Teams[RIGHT] ? xyToTile[`${x}${y}`].Teams[RIGHT].map((team) => COLORMAP[team]) : []
+                                                                    },
+                                                                    Bottom: {
+                                                                        Structure: xyToTile[`${x}${y}`].Sides[BOTTOM],
+                                                                        Colors: xyToTile[`${x}${y}`].Teams[BOTTOM] ? xyToTile[`${x}${y}`].Teams[BOTTOM].map((team) => COLORMAP[team]) : []
+                                                                    },
+                                                                    Left: {
+                                                                        Structure: xyToTile[`${x}${y}`].Sides[LEFT],
+                                                                        Colors: xyToTile[`${x}${y}`].Teams[LEFT] ? xyToTile[`${x}${y}`].Teams[LEFT].map((team) => COLORMAP[team]) : []
+                                                                    },
+                                                                    Center: {
+                                                                        Structure: xyToTile[`${x}${y}`].Center,
+                                                                        Colors: xyToTile[`${x}${y}`].CenterTeam ? [xyToTile[`${x}${y}`].CenterTeam].map((team) => COLORMAP[team]) : []
+                                                                    },
+                                                                    TopA: {
+                                                                        Structure: FARM,
+                                                                        Colors: xyToTile[`${x}${y}`].FarmTeams[TOPA] ? xyToTile[`${x}${y}`].FarmTeams[TOPA].map((team) => COLORMAP[team]) : [],
+                                                                    },
+                                                                    TopB: {
+                                                                        Structure: FARM,
+                                                                        Colors: xyToTile[`${x}${y}`].FarmTeams[TOPB] ? xyToTile[`${x}${y}`].FarmTeams[TOPB].map((team) => COLORMAP[team]) : [],
+                                                                    },
+                                                                    RightA: {
+                                                                        Structure: FARM,
+                                                                        Colors: xyToTile[`${x}${y}`].FarmTeams[RIGHTA] ? xyToTile[`${x}${y}`].FarmTeams[RIGHTA].map((team) => COLORMAP[team]) : [],
+                                                                    },
+                                                                    RIghtB: {
+                                                                        Structure: FARM,
+                                                                        Colors: xyToTile[`${x}${y}`].FarmTeams[RIGHTB] ? xyToTile[`${x}${y}`].FarmTeams[RIGHTB].map((team) => COLORMAP[team]) : [],
+                                                                    },
+                                                                    BottomA: {
+                                                                        Structure: FARM,
+                                                                        Colors: xyToTile[`${x}${y}`].FarmTeams[BOTTOMA] ? xyToTile[`${x}${y}`].FarmTeams[BOTTOMA].map((team) => COLORMAP[team]) : [],
+                                                                    },
+                                                                    BottomB: {
+                                                                        Structure: FARM,
+                                                                        Colors: xyToTile[`${x}${y}`].FarmTeams[BOTTOMB] ? xyToTile[`${x}${y}`].FarmTeams[BOTTOMB].map((team) => COLORMAP[team]) : [],
+                                                                    },
+                                                                    LeftA: {
+                                                                        Structure: FARM,
+                                                                        Colors: xyToTile[`${x}${y}`].FarmTeams[LEFTA] ? xyToTile[`${x}${y}`].FarmTeams[LEFTA].map((team) => COLORMAP[team]) : [],
+                                                                    },
+                                                                    LeftB: {
+                                                                        Structure: FARM,
+                                                                        Colors: xyToTile[`${x}${y}`].FarmTeams[LEFTB] ? xyToTile[`${x}${y}`].FarmTeams[LEFTB].map((team) => COLORMAP[team]) : [],
+                                                                    }
+                                                                },
+                                                                CityConn: xyToTile[`${x}${y}`].ConnectedCitySides,
+                                                                Banner: xyToTile[`${x}${y}`].Banner
+                                                            }}
+                                                            token={ boardTokens.reduce((acc, token) => acc ? acc : (token.X == x && token.Y == y ? { Side: token.Side, Color: COLORMAP[token.Team] } : undefined), undefined) }
                                                             tokenDroppable={ lastPlacedTile && lastPlacedTile.X === xyToTile[`${x}${y}`].X && lastPlacedTile.Y === xyToTile[`${x}${y}`].Y }
-                                                            team={ team }
+                                                            hoverColor={ COLORMAP[team] }
                                                     /> : null
                                         }
                                         </div>)
@@ -254,10 +309,35 @@ export const Game = forwardRef((props, ref) => {
                                     {
                                         playTile ?
                                             <div className="w-full h-full cursor-pointer" onClick={ () => game.Winners.length === 0 ? sendRotateTileAction(team) : null }>
-                                                <DraggableTile x={ playTile.X } y={ playTile.Y } sides={ playTile.Sides } center={ playTile.Center }
-                                                        connectedCitySides={ playTile.ConnectedCitySides } banner={ playTile.Banner }
-                                                        colors={ playTile.Teams } farmColors={ playTile.FarmTeams }
-                                                        centerColor={ playTile.CenterTeam } tokens={ [] } tokenDroppable={ false }
+                                                <DraggableTile x={ playTile.X } y={ playTile.Y } 
+                                                        tile={{
+                                                            Sides: {
+                                                                Top: {
+                                                                    Structure: playTile.Sides[TOP],
+                                                                    Colors: []
+                                                                },
+                                                                Right: {
+                                                                    Structure: playTile.Sides[RIGHT],
+                                                                    Colors: []
+                                                                },
+                                                                Bottom: {
+                                                                    Structure: playTile.Sides[BOTTOM],
+                                                                    Colors: []
+                                                                },
+                                                                Left: {
+                                                                    Structure: playTile.Sides[LEFT],
+                                                                    Colors: []
+                                                                },
+                                                                Center: {
+                                                                    Structure: playTile.Center,
+                                                                    Colors: []
+                                                                }
+                                                            },
+                                                            CityConn: playTile.ConnectedCitySides,
+                                                            Banner: playTile.Banner
+                                                        }}
+                                                        token={ undefined }
+                                                        tokenDroppable={ false }
                                                         team={ team } 
                                                         scrollX={ scrollX } scrollY={ scrollY } /> 
                                             </div> : null

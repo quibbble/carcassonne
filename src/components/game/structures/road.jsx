@@ -1,10 +1,10 @@
-import React from "react";
-
 // straight roads
-export const TopRoad = (fill) => <rect fill={ fill } x="35.63" width="3.75" height="37.5"/>
-export const RightRoad = (fill) => <rect fill={ fill } x="37.5" y="35.63" width="37.5" height="3.75"/>
-export const BottomRoad = (fill) => <rect fill={ fill } x="35.62" y="37.5" width="3.75" height="37.5"/>
-export const LeftRoad = (fill) => <rect fill={ fill } y="35.62" width="37.5" height="3.75"/>
+export const TopBottomRoad = (fill) => <rect fill={ fill } x="35.62" y="0" width="3.75" height="75"/>
+export const LeftRightRoad = (fill) => <rect fill={ fill } x="0" y="35.63" width="75" height="3.75"/>
+export const TopRoad = (fill) => <rect fill={ fill } x="35.63" y="0" width="3.75" height="35.62"/>
+export const RightRoad = (fill) => <rect fill={ fill } x="39.38" y="35.63" width="35.62" height="3.75"/>
+export const BottomRoad = (fill) => <rect fill={ fill } x="35.63" y="39.38" width="3.75" height="35.62"/>
+export const LeftRoad = (fill) => <rect fill={ fill } x="0" y="35.63" width="35.62" height="3.75"/>
 
 // curved roads
 export const TopLeftRoad = (fill) => <path fill={ fill } d="M35.63,0h3.75A39.09,39.09,0,0,1,27.84,27.84,39,39,0,0,1,0,39.37V35.62A35.33,35.33,0,0,0,25.19,25.19,35.39,35.39,0,0,0,35.63,0Z"/>
