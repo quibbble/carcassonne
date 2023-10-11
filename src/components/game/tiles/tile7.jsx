@@ -72,7 +72,7 @@ export const FCRRNFF = [
 export const RFCRNFF = [
     {
         type: FARM,
-        sides: [TOPA, RIGHTA, RIGHTB, LEFTA],
+        sides: [TOPB, RIGHTA, RIGHTB, LEFTA],
         path: <path fill={ DARK } d="m0,75v-35.37c10.52,0,20.4-4.09,27.84-11.53,7.44-7.44,11.53-17.33,11.53-27.84v-.26h35.63s0,75,0,75c-11.36-7.57-24.43-11.36-37.5-11.36-13.07,0-26.14,3.79-37.5,11.36Z"/>,
         token: RightHalfCenterToken,
         banner: undefined
