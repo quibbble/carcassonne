@@ -1,6 +1,6 @@
 import React, { useState, useLayoutEffect, useRef, createRef } from "react";
 import { Route, Routes, BrowserRouter } from "react-router-dom";
-import { GamePage, HomePage, DownPage, RulesPage } from "@quibbble/boardgame";
+import { GamePage, HomePage, DownPage, RulesPage, BugsPage } from "@quibbble/boardgame";
 import { Game } from "./game/Game";
 import Rules from "./rules.md"
 
@@ -61,6 +61,7 @@ export default function App() {
           />
           <Route exact path="/status/down" element={ <DownPage config={ config } /> }/>
           <Route exact path="/rules" element={ <RulesPage config={ config } rules={ rules } /> }/>
+          <Route exact path="/bugs" element={ <BugsPage config={ config } /> }/>
           <Route path="/" element={ <HomePage config={ config } /> } />
         </Routes>
       </BrowserRouter>
