@@ -63,7 +63,7 @@ export const Game = forwardRef((props, ref) => {
     const [boardTokens, setBoardTokens] = useState([]);
     const [scores, setScores] = useState({});
     const [playTile, setPlayTile] = useState();
-    const [lastPlacedTile, setLastPlacedTile] = useState();
+    const [lastPlacedTiles, setLastPlacedTiles] = useState();
     const [tilesRemaining, setTilesRemaining] = useState(0);
     useEffect(() => {
         if (game) setTurn(game.Turn)
@@ -72,7 +72,7 @@ export const Game = forwardRef((props, ref) => {
         if (game && game.MoreData) setBoardTokens(game.MoreData.BoardTokens)
         if (game && game.MoreData) setScores(game.MoreData.Scores)
         if (game && game.MoreData) setPlayTile(game.MoreData.PlayTile)
-        if (game && game.MoreData) setLastPlacedTile(game.MoreData.LastPlacedTile)
+        if (game && game.MoreData) setLastPlacedTiles(game.MoreData.LastPlacedTiles)
         if (game && game.MoreData) setTilesRemaining(game.MoreData.TilesRemaining)
     }, [game])
 
@@ -200,7 +200,9 @@ export const Game = forwardRef((props, ref) => {
                                 <div key={ y } className="flex">
                                 {
                                     Array.from({ length: maxX-minX+1 }, (_, x) => x+minX).map(x =>
-                                        <div key={ `${x}${y}` } className={ lastPlacedTile && lastPlacedTile.X === x && lastPlacedTile.Y === y ? `box-border border-4 border-${ turn }-500` : "" } style={{ width: tileSize*zoom, height: tileSize*zoom }}>
+                                        <div key={ `${x}${y}` } className={ 
+                                                lastPlacedTiles && Object.keys(lastPlacedTiles).find(k => lastPlacedTiles[k] && lastPlacedTiles[k].X == x && lastPlacedTiles[k].Y == y) ? `box-border border-2 border-${ Object.keys(lastPlacedTiles).find((k) => lastPlacedTiles[k] && lastPlacedTiles[k].X == x && lastPlacedTiles[k].Y == y) }-500` : "" 
+                                            } style={{ width: tileSize*zoom, height: tileSize*zoom }}>
                                         {
                                             xyToPlaceable[`${ x }${ y }`] ?
                                                 <TileDropSpace x={ x } y={ y } team={ team } /> :
@@ -265,7 +267,7 @@ export const Game = forwardRef((props, ref) => {
                                                                 Banner: xyToTile[`${x}${y}`].Banner
                                                             }}
                                                             token={ boardTokens.reduce((acc, token) => acc ? acc : (token.X == x && token.Y == y ? { Side: token.Side, Color: COLORMAP[token.Team] } : undefined), undefined) }
-                                                            tokenDroppable={ lastPlacedTile && lastPlacedTile.X === xyToTile[`${x}${y}`].X && lastPlacedTile.Y === xyToTile[`${x}${y}`].Y }
+                                                            tokenDroppable={ !playTile && lastPlacedTiles && lastPlacedTiles[turn] && lastPlacedTiles[turn].X === xyToTile[`${x}${y}`].X && lastPlacedTiles[turn].Y === xyToTile[`${x}${y}`].Y }
                                                             hoverColor={ COLORMAP[team] }
                                                     /> : null
                                         }
