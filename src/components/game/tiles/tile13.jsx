@@ -4,7 +4,7 @@ import { BOTTOM, LEFT, RIGHT, TOP } from "../models/side";
 import { DARK, GRAY } from "../models/color";
 import { BottomCenterFlushToken, CenterToken, LeftCenterFlushToken, RightCenterFlushToken, TopCenterFlushToken } from "../tokens/tokens";
 import { RightLeftCity, TopBottomCity } from "../structures/city";
-import { BOTTOMA, BOTTOMB, RIGHTA, RIGHTB, TOPA, TOPB } from "../models/farmside";
+import { BOTTOMA, BOTTOMB, LEFTA, LEFTB, RIGHTA, RIGHTB, TOPA, TOPB } from "../models/farmside";
 
 export const FCFCNTF = [
     {
@@ -33,7 +33,7 @@ export const FCFCNTF = [
 export const CFCFNTF = [
     {
         type: FARM,
-        sides: [TOPA, TOPB],
+        sides: [LEFTA, LEFTB],
         path: <path fill={ DARK } d="m0,75V0c7.57,11.36,11.36,24.43,11.36,37.5S7.57,63.65,0,75Z"/>,
         token: LeftCenterFlushToken,
         banner: undefined
