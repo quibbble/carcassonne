@@ -49,6 +49,7 @@ export const CCFFNFF = [
         type: FARM,
         sides: [BOTTOMA, BOTTOMB, LEFTA, LEFTB],
         path: <path fill={ DARK } d="m75,75H0S0,0,0,0c11.35,7.57,24.43,11.36,37.5,11.36S63.65,7.57,75,0c-7.57,11.36-11.36,24.43-11.36,37.5,0,13.07,3.79,26.14,11.36,37.5Z"/>,
+        token: CenterToken,
         banner: undefined
     }
 ]
