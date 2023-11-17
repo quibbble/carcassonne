@@ -242,7 +242,7 @@ export const Game = forwardRef((props, ref) => {
                                                                         Structure: FARM,
                                                                         Colors: xyToTile[`${x}${y}`].FarmTeams[RIGHTA] ? xyToTile[`${x}${y}`].FarmTeams[RIGHTA].map((team) => COLORMAP[team]) : [],
                                                                     },
-                                                                    RIghtB: {
+                                                                    RightB: {
                                                                         Structure: FARM,
                                                                         Colors: xyToTile[`${x}${y}`].FarmTeams[RIGHTB] ? xyToTile[`${x}${y}`].FarmTeams[RIGHTB].map((team) => COLORMAP[team]) : [],
                                                                     },
@@ -267,7 +267,7 @@ export const Game = forwardRef((props, ref) => {
                                                                 Banner: xyToTile[`${x}${y}`].Banner
                                                             }}
                                                             token={ boardTokens.reduce((acc, token) => acc ? acc : (token.X == x && token.Y == y ? { Side: token.Side, Color: COLORMAP[token.Team] } : undefined), undefined) }
-                                                            tokenDroppable={ !playTile && lastPlacedTiles && lastPlacedTiles[turn] && lastPlacedTiles[turn].X === xyToTile[`${x}${y}`].X && lastPlacedTiles[turn].Y === xyToTile[`${x}${y}`].Y }
+                                                            tokenDroppable={ game.Winners.length === 0 && !playTile && lastPlacedTiles && lastPlacedTiles[turn] && lastPlacedTiles[turn].X === xyToTile[`${x}${y}`].X && lastPlacedTiles[turn].Y === xyToTile[`${x}${y}`].Y }
                                                             hoverColor={ COLORMAP[team] }
                                                     /> : null
                                         }

@@ -79,8 +79,8 @@ export const Tile = forwardRef(({ x, y, tile, tokenDroppable, token, hoverColor,
 
     const definitions = defs(tile)
     const paths = TILES[key(tile)]
-
-    return  <div ref={ ref } { ...props } >
+    
+    return  <div ref={ ref } { ...props } name={ x + "," + y } >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 75">
                     <defs>
                         {
