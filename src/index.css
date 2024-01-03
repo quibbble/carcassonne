@@ -6,7 +6,7 @@
     .fade-in {
         animation: fadeIn 300ms ease-in-out;
     }
-
+    
     @keyframes fadeIn {
         from { opacity: 0; }
         to   { opacity: 1; }
@@ -15,16 +15,30 @@
 
 html, body {
     scroll-behavior: smooth;
-
+    
     margin: 0;
     padding: 0;
-
+    
     font-family: "Raleway", sans-serif;
-
+    
     @apply bg-zinc-800;
     @apply text-zinc-100;
 }
 
 .test {
     border: 2px solid red
+}
+
+/* hide ugly Scrollbars on chrome */ 
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: none !important;
+    background-color: transparent;
+}
+::-webkit-scrollbar {
+    width: 0px !important;
+    height: 0px !important;
+    background-color: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background-color: transparent;
 }
