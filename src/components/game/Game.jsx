@@ -36,9 +36,10 @@ export const Game = forwardRef((props, ref) => {
         }));
     }, [ws])
 
-    const sendRotateTileAction = useCallback((team) => {
+    const sendRotateTileAction = useCallback((team, rotateRight=true) => {
         if (!ws.current) return;
-        ws.current.send(JSON.stringify({"ActionType": "RotateTileRight", "Team": team}));
+        let actionType = rotateRight ? "RotateTileRight" : "RotateTileLeft"
+        ws.current.send(JSON.stringify({"ActionType": actionType, "Team": team}));
     }, [ws])
 
     const sendPlaceTokenAction = useCallback((team, x, y, type, side) => {
@@ -165,9 +166,20 @@ export const Game = forwardRef((props, ref) => {
     // handle what happens on key press
     const handleKeyPress = useCallback((event) => {
         if (event.key === 's') {
+            // skip
             sendPassAction(team)
         } else if (event.key === 'r') {
-            game.Winners.length === 0 ? sendRotateTileAction(team) : null
+            // rotate
+            if (game.Winners.length !== 0) {
+                return
+            }
+            sendRotateTileAction(team)
+        } else if (event.key === 't') {
+            // rotate other direction (maybe shirt+r better?)
+            if (game.Winners.length !== 0) {
+                return
+            }
+            sendRotateTileAction(team,false)
         }
     }, [team, game]);
 
