@@ -23,4 +23,4 @@ This repo contains [ReactJS](https://react.dev) frontend code and makes use of c
 VITE_HOST="http://127.0.0.1:8080"
 VITE_WEBSOCKET="ws://127.0.0.1:8080"
 ```
-- Run `npm start`.
+- Run `npm run dev`.
