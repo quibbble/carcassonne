@@ -162,6 +162,25 @@ export const Game = forwardRef((props, ref) => {
         setScrollY(sY)
     }
 
+    // handle what happens on key press
+    const handleKeyPress = useCallback((event) => {
+        if (event.key === 's') {
+            sendPassAction(team)
+        } else if (event.key === 'r') {
+            game.Winners.length === 0 ? sendRotateTileAction(team) : null
+        }
+    }, [team, game]);
+
+    useEffect(() => {
+        // attach the event listener
+        document.addEventListener('keydown', handleKeyPress);
+
+        // remove the event listener
+        return () => {
+            document.removeEventListener('keydown', handleKeyPress);
+        };
+    }, [handleKeyPress]);
+
     return (
         <DndContext autoScroll={ false } onDragEnd={ handleDragEnd } sensors={ sensors }>
             <div className="w-full flex flex-col justify-center items-center grow">
