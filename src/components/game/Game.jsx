@@ -79,6 +79,7 @@ export const Game = forwardRef((props, ref) => {
 
     // board rendering
     const [zoom, setZoom] = useState(1);
+    // console.log(zoom, setZoom)
     const [minX, setMinX] = useState(0);
     const [maxX, setMaxX] = useState(0);
     const [minY, setMinY] = useState(0);
@@ -163,6 +164,81 @@ export const Game = forwardRef((props, ref) => {
         setScrollY(sY)
     }
 
+    /// Try 2:
+
+    // const zoomIn = useCallback(() => {
+    //     console.log('in zoom', zoom)
+
+    //     if (zoom < 1) {
+    //         setZoom(zoom + 0.1)
+    //         console.log("zoomed in")
+    //     }
+    // }, [zoom,setZoom]);
+    // const zoomOut = useCallback(() => {
+    //     console.log('out zoom', zoom)
+    //     if (zoom >= .4) {
+    //         setZoom(zoom - 0.1)
+    //         console.log("zoomed out")
+    //     }
+    // }, [zoom,setZoom]);
+
+    /// Try 1:
+    // const zoomIn = () => {
+    //     console.log('in zoom', zoom)
+
+    //     if (zoom < 1) {
+    //         setZoom(zoom + 0.1)
+    //         console.log("zoomed in")
+    //     }
+    // }
+    // const zoomOut = () => {
+    //     console.log('out zoom', zoom)
+    //     if (zoom >= .4) {
+    //         setZoom(zoom - 0.1)
+    //         console.log("zoomed out")
+    //     }
+    // }
+
+    /// Try 3:
+    const zoomFunctions = {
+        // zoomIn: () => {
+        //     console.log('in zoom', zoom)
+
+        //     if (zoom < 1) {
+        //         setZoom(zoom + 0.1)
+        //         console.log("zoomed in")
+        //     }
+        // },
+        // zoomOut: () => {
+        //     console.log('out zoom', zoom)
+        //     if (zoom >= .4) {
+        //         setZoom(zoom - 0.1)
+        //         console.log("zoomed out")
+        //     }
+        // }
+    }
+    useEffect(() => {
+        console.log('zoom value', zoom);
+        zoomFunctions.zoomIn = () => {
+            console.log('in zoom', zoom)
+
+            if (zoom < 1) {
+                setZoom(zoom + 0.1)
+                console.log("zoomed in")
+            }
+        }
+        zoomFunctions.zoomOut= () => {
+            console.log('out zoom', zoom)
+            if (zoom >= .4) {
+                setZoom(zoom - 0.1)
+                console.log("zoomed out")
+            }
+        }
+    });
+    // }, []);
+    // }, [zoom, setZoom, zoomFunctions]);
+
+
     // handle what happens on key press
     const handleKeyPress = useCallback((event) => {
         if (event.key === shortcut.skip) {
@@ -180,6 +256,12 @@ export const Game = forwardRef((props, ref) => {
                 return
             }
             sendRotateTileAction(team,false)
+        } else if (event.key === shortcut.zoomIn) {
+            console.log("zoom in from: ", zoom)
+            zoomFunctions.zoomIn(zoom)
+        } else if (event.key === shortcut.zoomOut) {
+            console.log("zoom out from: ", zoom)
+            zoomFunctions.zoomOut(zoom)
         }
     }, [team, game]);
 
@@ -211,12 +293,8 @@ export const Game = forwardRef((props, ref) => {
                             </div>
                         </div>
                         <div className="m-2">
-                            <div onClick={ () => {
-                                if (zoom < 1) setZoom(zoom + 0.1)
-                            }} className="rounded-full w-10 h-10 bg-zinc-600 cursor-pointer font-bold text-3xl flex items-center justify-center mb-2 select-none">+</div>
-                            <div onClick={() => {
-                                if (zoom >= .4) setZoom(zoom - 0.1)
-                            }} className="rounded-full w-10 h-10 bg-zinc-600 cursor-pointer font-bold text-3xl flex items-center justify-center select-none">-</div>
+                            <div onClick={ zoomFunctions.zoomIn } className="rounded-full w-10 h-10 bg-zinc-600 cursor-pointer font-bold text-3xl flex items-center justify-center mb-2 select-none">+</div>
+                            <div onClick={ zoomFunctions.zoomOut } className="rounded-full w-10 h-10 bg-zinc-600 cursor-pointer font-bold text-3xl flex items-center justify-center select-none">-</div>
                         </div>
                     </div>
                     <div className="sticky w-full top-[93%] h-0 flex justify-between z-[999]">

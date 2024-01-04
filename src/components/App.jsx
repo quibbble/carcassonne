@@ -27,6 +27,8 @@ const config = {
     skip: 's',
     rotate: 'r',
     rotateReverse: 't',
+    zoomIn: 'i',
+    zoomOut: 'o',
     nextTeam: 'n',
     currentTeam: 'c',
   }
