@@ -31,6 +31,7 @@ const config = {
     zoomOut: 'o',
     nextTeam: 'n',
     currentTeam: 'c',
+    undo: 'u',
   }
 }
 
