@@ -27,7 +27,8 @@ const config = {
     skip: 's',
     rotate: 'r',
     rotateReverse: 't',
-    
+    nextTeam: 'n',
+    currentTeam: 'c',
   }
 }
 
