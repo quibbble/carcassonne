@@ -12,7 +12,7 @@ import { COLORMAP } from "./models/color";
 
 export const Game = forwardRef((props, ref) => {
     // eslint-disable-next-line no-unused-vars
-    const { ws, game, network, chat, connected, error } = props;
+    const { ws, game, network, chat, connected, error, shortcut} = props;
 
     // websocket messages
     const sendPlaceTileAction = useCallback((team, x, y, top, right, bottom, left, center, connectedCitySides, banner) => {
@@ -165,16 +165,16 @@ export const Game = forwardRef((props, ref) => {
 
     // handle what happens on key press
     const handleKeyPress = useCallback((event) => {
-        if (event.key === 's') {
+        if (event.key === shortcut.skip) {
             // skip
             sendPassAction(team)
-        } else if (event.key === 'r') {
+        } else if (event.key === shortcut.rotate) {
             // rotate
             if (game.Winners.length !== 0) {
                 return
             }
             sendRotateTileAction(team)
-        } else if (event.key === 't') {
+        } else if (event.key === shortcut.rotateReverse) {
             // rotate other direction (maybe shirt+r better?)
             if (game.Winners.length !== 0) {
                 return

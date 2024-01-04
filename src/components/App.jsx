@@ -20,7 +20,15 @@ const config = {
   color: "orange-600",
 
   // misc attributes
-  gamePageMaxWidth: "max-w-6xl"
+  gamePageMaxWidth: "max-w-6xl",
+
+  // keyboard shortcuts
+  shortcut: {
+    skip: 's',
+    rotate: 'r',
+    rotateReverse: 't',
+    
+  }
 }
 
 export default function App() {
@@ -60,7 +68,8 @@ export default function App() {
                 error={ error } setError={ setError }>
                   <Game ref={ ref } ws={ ws }
                     game={ game } network={ network } 
-                    chat={ chat } connected={ connected } error={ error } />
+                    chat={ chat } connected={ connected } error={ error } 
+                    shortcut={ config.shortcut } />
               </GamePage>
             }
           />
