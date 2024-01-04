@@ -215,8 +215,8 @@ export const Game = forwardRef((props, ref) => {
                                 if (zoom < 1) setZoom(zoom + 0.1)
                             }} className="rounded-full w-10 h-10 bg-zinc-600 cursor-pointer font-bold text-3xl flex items-center justify-center mb-2 select-none">+</div>
                             <div onClick={() => {
-                            if (zoom >= .4) setZoom(zoom - 0.1)
-                        }} className="rounded-full w-10 h-10 bg-zinc-600 cursor-pointer font-bold text-3xl flex items-center justify-center select-none">-</div>
+                                if (zoom >= .4) setZoom(zoom - 0.1)
+                            }} className="rounded-full w-10 h-10 bg-zinc-600 cursor-pointer font-bold text-3xl flex items-center justify-center select-none">-</div>
                         </div>
                     </div>
                     <div className="sticky w-full top-[93%] h-0 flex justify-between z-[999]">
