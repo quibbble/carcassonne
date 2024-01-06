@@ -12,7 +12,7 @@ import { COLORMAP } from "./models/color";
 
 export const Game = forwardRef((props, ref) => {
     // eslint-disable-next-line no-unused-vars
-    const { ws, game, network, chat, connected, error, shortcut} = props;
+    const { ws, game, network, chat, connected, error, shortcut } = props;
 
     // websocket messages
     const sendPlaceTileAction = useCallback((team, x, y, top, right, bottom, left, center, connectedCitySides, banner) => {
@@ -79,7 +79,6 @@ export const Game = forwardRef((props, ref) => {
 
     // board rendering
     const [zoom, setZoom] = useState(1);
-    // console.log(zoom, setZoom)
     const [minX, setMinX] = useState(0);
     const [maxX, setMaxX] = useState(0);
     const [minY, setMinY] = useState(0);
