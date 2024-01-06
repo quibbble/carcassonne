@@ -12,7 +12,7 @@ import { COLORMAP } from "./models/color";
 
 export const Game = forwardRef((props, ref) => {
     // eslint-disable-next-line no-unused-vars
-    const { ws, game, network, chat, connected, error } = props;
+    const { ws, game, network, chat, connected, error, shortcut} = props;
 
     // websocket messages
     const sendPlaceTileAction = useCallback((team, x, y, top, right, bottom, left, center, connectedCitySides, banner) => {
@@ -36,9 +36,10 @@ export const Game = forwardRef((props, ref) => {
         }));
     }, [ws])
 
-    const sendRotateTileAction = useCallback((team) => {
+    const sendRotateTileAction = useCallback((team, rotateRight=true) => {
         if (!ws.current) return;
-        ws.current.send(JSON.stringify({"ActionType": "RotateTileRight", "Team": team}));
+        let actionType = rotateRight ? "RotateTileRight" : "RotateTileLeft"
+        ws.current.send(JSON.stringify({"ActionType": actionType, "Team": team}));
     }, [ws])
 
     const sendPlaceTokenAction = useCallback((team, x, y, type, side) => {
@@ -78,6 +79,7 @@ export const Game = forwardRef((props, ref) => {
 
     // board rendering
     const [zoom, setZoom] = useState(1);
+    // console.log(zoom, setZoom)
     const [minX, setMinX] = useState(0);
     const [maxX, setMaxX] = useState(0);
     const [minY, setMinY] = useState(0);
@@ -162,6 +164,47 @@ export const Game = forwardRef((props, ref) => {
         setScrollY(sY)
     }
 
+    const zoomIn = () => {
+        if (zoom < 1) setZoom(zoom + 0.1)
+    }
+    const zoomOut = () => {
+        if (zoom >= .4) setZoom(zoom - 0.1)
+    }
+
+    // handle what happens on key press
+    const handleKeyPress = useCallback((event) => {
+        if (event.key === shortcut.skip) {
+            // skip
+            sendPassAction(team)
+        } else if (event.key === shortcut.rotate) {
+            // rotate
+            if (game.Winners.length !== 0) {
+                return
+            }
+            sendRotateTileAction(team)
+        } else if (event.key === shortcut.rotateReverse) {
+            // rotate other direction (maybe shirt+r better?)
+            if (game.Winners.length !== 0) {
+                return
+            }
+            sendRotateTileAction(team,false)
+        } else if (event.key === shortcut.zoomIn) {
+            zoomIn()
+        } else if (event.key === shortcut.zoomOut) {
+            zoomOut()
+        }
+    }, [team, game, zoom]);
+
+    useEffect(() => {
+        // attach the event listener
+        document.addEventListener('keydown', handleKeyPress);
+
+        // remove the event listener
+        return () => {
+            document.removeEventListener('keydown', handleKeyPress);
+        };
+    }, [handleKeyPress]);
+
     return (
         <DndContext autoScroll={ false } onDragEnd={ handleDragEnd } sensors={ sensors }>
             <div className="w-full flex flex-col justify-center items-center grow">
@@ -180,12 +223,8 @@ export const Game = forwardRef((props, ref) => {
                             </div>
                         </div>
                         <div className="m-2">
-                            <div onClick={ () => {
-                                if (zoom < 1) setZoom(zoom + 0.1)
-                            }} className="rounded-full w-10 h-10 bg-zinc-600 cursor-pointer font-bold text-3xl flex items-center justify-center mb-2 select-none">+</div>
-                            <div onClick={() => {
-                            if (zoom >= .4) setZoom(zoom - 0.1)
-                        }} className="rounded-full w-10 h-10 bg-zinc-600 cursor-pointer font-bold text-3xl flex items-center justify-center select-none">-</div>
+                            <div onClick={ zoomIn } className="rounded-full w-10 h-10 bg-zinc-600 cursor-pointer font-bold text-3xl flex items-center justify-center mb-2 select-none">+</div>
+                            <div onClick={ zoomOut } className="rounded-full w-10 h-10 bg-zinc-600 cursor-pointer font-bold text-3xl flex items-center justify-center select-none">-</div>
                         </div>
                     </div>
                     <div className="sticky w-full top-[93%] h-0 flex justify-between z-[999]">
