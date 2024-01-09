@@ -231,7 +231,7 @@ export const Game = forwardRef((props, ref) => {
                             { tilesRemaining } tiles left
                         </div>
                     </div>
-                    <div className="relative overflow-auto w-full flex items-center justify-center flex-col grow">
+                    <div className="relative overflow-auto w-full flex items-center justify-center flex-col grow no-scrollbar">
                         <div className="absolute top-0 left-0 flex items-center justify-center flex-col min-w-full min-h-full">
                         {
                             Array.from({ length: maxY-minY+1 }, (_, y) => maxY+y*-1).map(y =>
